@@ -1,0 +1,4 @@
+NoChunk
+=======
+
+Disables chunk generation
