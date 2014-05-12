@@ -1,0 +1,5 @@
+name: noChunk
+main: com.mcmiddleearth.chunks.NoChunk
+version: 0.1
+description: No more chunks!
+author: meggawatts
