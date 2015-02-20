@@ -1,5 +1,4 @@
-name: noChunk
-main: com.mcmiddleearth.chunks.NoChunk
-version: 0.1
-description: No more chunks!
-author: meggawatts
+name: NoChunk
+main: com.mcmiddleearth.nochunks.NoChunks
+version: 0.1.0
+authors: [DonoA]
