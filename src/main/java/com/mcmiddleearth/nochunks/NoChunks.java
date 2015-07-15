@@ -18,7 +18,6 @@
  */
 package com.mcmiddleearth.nochunks;
 
-import java.util.List;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkLoadEvent;
@@ -26,19 +25,27 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  *
- * @author Donovan
+ * @author Donovan <dallen@dallen.xyz>
  */
 public class NoChunks extends JavaPlugin implements Listener{
     
+    boolean all = false;
+    
     @Override
     public void onEnable(){
+        this.saveDefaultConfig();
+        if(!this.getConfig().contains("worlds")){
+            this.getLogger().warning("no worlds selected, all worlds will be blocked!");
+            all = true;
+        }
         getServer().getPluginManager().registerEvents(this, this);
     }
     
     @EventHandler
     public void onChunkLoad(ChunkLoadEvent e){
-        if(e.isNewChunk())
+        if(e.isNewChunk() && 
+          (this.getConfig().getStringList("worlds").contains(e.getWorld().getName()) || all)){
             e.getChunk().unload(false, false);
+        }
     }
-    
 }
