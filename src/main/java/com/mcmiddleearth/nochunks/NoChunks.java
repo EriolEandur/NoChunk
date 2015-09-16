@@ -18,6 +18,7 @@
  */
 package com.mcmiddleearth.nochunks;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -32,7 +33,7 @@ public class NoChunks extends JavaPlugin implements Listener{
     
     boolean all = false;
     
-    List<String> worlds;
+    List<String> worlds = new ArrayList<String>();
     
     @Override
     public void onEnable(){
