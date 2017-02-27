@@ -1,2 +1,8 @@
+protectAll: true
 worlds:
-- world
+    world:
+        minX: -200
+        maxX: 200
+        minZ: -300
+        maxZ: 300
+      

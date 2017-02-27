@@ -18,31 +18,50 @@
  */
 package com.mcmiddleearth.nochunks;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.Rectangle;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  *
- * @author Donovan <dallen@dallen.xyz>
+ * @author Donovan <dallen@dallen.xyz>, Eriol_Eandur
  */
 public class NoChunks extends JavaPlugin implements Listener{
     
     boolean all = false;
     
-    List<String> worlds = new ArrayList<String>();
+    Map<World, Rectangle> protectedWorlds = new HashMap<>();
     
     @Override
     public void onEnable(){
         this.saveDefaultConfig();
-        if(!this.getConfig().contains("worlds")){
-            this.getLogger().warning("no worlds selected, all worlds will be blocked!");
+        if(this.getConfig().getBoolean("protectAll")){
+            this.getLogger().warning("trying to block chunk generation in all worlds!");
             all = true;
-        }else{
-            worlds = this.getConfig().getStringList("worlds");
+        }
+        if(this.getConfig().contains("worlds")) {
+            ConfigurationSection config = this.getConfig().getConfigurationSection("worlds");
+            for(String worldName:config.getKeys(false)) {
+                World world = Bukkit.getWorld(worldName);
+                if(world!=null) {
+                    Rectangle borders = rectangleFromConfig(config.getConfigurationSection(worldName));
+                    protectedWorlds.put(world, borders);
+                }
+            }
         }
         getServer().getPluginManager().registerEvents(this, this);
     }
@@ -50,8 +69,50 @@ public class NoChunks extends JavaPlugin implements Listener{
     @EventHandler
     public void onChunkLoad(ChunkLoadEvent e){
         if(e.isNewChunk() && 
-          (worlds.contains(e.getWorld().getName()) || all)){
-            e.getChunk().unload(false, false);
+          (protectedWorlds.containsKey(e.getWorld()) || all)){
+            e.getChunk().unload(false, true);
         }
     }
+    
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerMove(PlayerMoveEvent e){
+        if(!e.getPlayer().hasPermission("noChunks.ignore") && !isAllowed(e.getTo())) {
+            e.setCancelled(true);
+            e.getPlayer().sendMessage(ChatColor.RED+"[NoChunks] You reached the border of the allowed map area.");
+        }
+    }
+    
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerTeleport(PlayerTeleportEvent e) {
+        if(!e.getPlayer().hasPermission("noChunks.ignore") && !isAllowed(e.getTo())) {
+            e.setCancelled(true);
+            e.getPlayer().sendMessage(ChatColor.RED+"[NoChunks] Your teleportaion target is outside the allowed map area. Teleporation cancelled.");
+        }
+    }
+
+    private boolean isAllowed(Location loc) {
+        if(protectedWorlds.containsKey(loc.getWorld())) {
+            Rectangle worldBorder = protectedWorlds.get(loc.getWorld());
+            return worldBorder.contains(loc.getBlockX(),loc.getBlockZ());
+        } else {
+            return true;
+        }
+    }
+    
+    private Rectangle rectangleFromConfig(ConfigurationSection config) {
+        int minX = config.getInt("minX");
+        int maxX = config.getInt("maxX");
+        int minZ = config.getInt("minZ");
+        int maxZ = config.getInt("maxZ");
+        return new Rectangle(minX, minZ, maxX-minX, maxZ-minZ);
+    }
+    
+    @Override
+    public ChunkGenerator getDefaultWorldGenerator(String worldName, String GenId) {
+        Logger.getGlobal().info("Get Void Generator");
+        return new VoidGenerator();
+    }
+
 }
+
+    

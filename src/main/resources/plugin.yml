@@ -1,4 +1,10 @@
 name: NoChunk
 main: com.mcmiddleearth.nochunks.NoChunks
-version: 0.1.0
-authors: [DonoA]
+version: 1.0.0
+load: STARTUP
+authors: [DonoA,Eriol_Eandur]
+
+permissions:
+    noChunks.ignore:
+        description: Allows to ignore NoChunks map borders
+        default: op
