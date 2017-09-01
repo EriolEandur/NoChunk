@@ -1,8 +1,10 @@
-protectAll: true
-worlds:
-    world:
-        minX: -200
-        maxX: 200
-        minZ: -300
-        maxZ: 300
-      
+borders:
+# Indidual borders for each world may be specified. See example below for a world named "world".
+# Missing borders for a direction grant unlimited movement in this direction. In the example below
+# movement in positive y direction is unlimitied.
+#    world:
+#        xMin: -1000
+#        xMax: 1000
+#        yMin: 1
+#        zMin: -1000
+#        zMax: 1000

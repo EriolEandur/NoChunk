@@ -21,78 +21,29 @@ package com.mcmiddleearth.nochunks;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.Location;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
-import org.bukkit.generator.ChunkGenerator.BiomeGrid;
+import org.bukkit.World;
 
-/**
- *
- * @author Eriol_Eandur
- */
 public class VoidGenerator extends ChunkGenerator {
- 
-    /**
-    *
-    * @param x
-    * X co-ordinate of the block to be set in the array
-    * @param y
-    * Y co-ordinate of the block to be set in the array
-    * @param z
-    * Z co-ordinate of the block to be set in the array
-    * @param chunk
-    * An array containing the Block id's of all the blocks in the chunk. The first offset
-    * is the block section number. There are 16 block sections, stacked vertically, each of which
-    * 16 by 16 by 16 blocks.
-    * @param material
-    * The material to set the block to.
-    */
-    byte getBlock(int x, int y, int z, byte[][] chunk) {
-        return 0;
+
+    @Override
+    public byte[] generate(World world, Random random, int cx, int cz) {
+        byte[] result = new byte[0];
+        return result;
     }
 
-    void setBlock(int x, int y, int z, byte[][] chunk, Material material) {
-            // do nothing
-    }
- 
-   
-    /**
-    * @param world
-    * The world the chunk belongs to
-    * @param rand
-    * Don't use this, make a new random object using the world seed (world.getSeed())
-    * @param biome
-    * Use this to set/get the current biome
-     * @param ChunkZ
-    * @param ChunkX and ChunkZ
-    * The x and z co-ordinates of the current chunk.
-     * @return 
-    */
-    @Override
-    public byte[][] generateBlockSections(World world, Random rand, int ChunkX,
-            int ChunkZ, BiomeGrid biome) {
-       
-       byte[][] chunk = new byte[world.getMaxHeight() / 16][];
-       
-        return chunk;
-    }
-    /**
-    * Returns a list of all of the block populators (that do "little" features)
-    * to be called after the chunk generator
-     * @param world
-     * @return 
-    */
     @Override
     public List<BlockPopulator> getDefaultPopulators(World world) {
-        ArrayList<BlockPopulator> pops = new ArrayList<>();
-        //Add Block populators here
-        return pops;
+        return new ArrayList<>();
     }
-   
-   
+
     @Override
-    public boolean canSpawn(World world, int x, int z) {
-        return true;
+    public Location getFixedSpawnLocation(World world, Random random) {
+        int x = random.nextInt(200) - 100;
+        int z = random.nextInt(200) - 100;
+        int y = 50;
+        return new Location(world, x, y, z);
     }
 }

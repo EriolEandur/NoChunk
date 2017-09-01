@@ -18,21 +18,12 @@
  */
 package com.mcmiddleearth.nochunks;
 
-import java.awt.Rectangle;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -42,74 +33,41 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class NoChunks extends JavaPlugin implements Listener{
     
-    boolean all = false;
-    
-    Map<World, Rectangle> protectedWorlds = new HashMap<>();
+    private static ConfigurationSection borderConfig;
     
     @Override
-    public void onEnable(){
-        this.saveDefaultConfig();
-        if(this.getConfig().getBoolean("protectAll")){
-            this.getLogger().warning("trying to block chunk generation in all worlds!");
-            all = true;
-        }
-        if(this.getConfig().contains("worlds")) {
-            ConfigurationSection config = this.getConfig().getConfigurationSection("worlds");
-            for(String worldName:config.getKeys(false)) {
-                World world = Bukkit.getWorld(worldName);
-                if(world!=null) {
-                    Rectangle borders = rectangleFromConfig(config.getConfigurationSection(worldName));
-                    protectedWorlds.put(world, borders);
-                }
-            }
-        }
-        getServer().getPluginManager().registerEvents(this, this);
+    public void onEnable() {
+        saveDefaultConfig();
+        borderConfig =getConfig().getConfigurationSection("borders");
+        getServer().getPluginManager().registerEvents(new PlayerListener(), this);
     }
     
-    @EventHandler
-    public void onChunkLoad(ChunkLoadEvent e){
-        if(e.isNewChunk() && 
-          (protectedWorlds.containsKey(e.getWorld()) || all)){
-            e.getChunk().unload(false, true);
-        }
-    }
-    
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerMove(PlayerMoveEvent e){
-        if(!e.getPlayer().hasPermission("noChunks.ignore") && !isAllowed(e.getTo())) {
-            e.setCancelled(true);
-            e.getPlayer().sendMessage(ChatColor.RED+"[NoChunks] You reached the border of the allowed map area.");
-        }
-    }
-    
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerTeleport(PlayerTeleportEvent e) {
-        if(!e.getPlayer().hasPermission("noChunks.ignore") && !isAllowed(e.getTo())) {
-            e.setCancelled(true);
-            e.getPlayer().sendMessage(ChatColor.RED+"[NoChunks] Your teleportaion target is outside the allowed map area. Teleporation cancelled.");
-        }
-    }
-
-    private boolean isAllowed(Location loc) {
-        if(protectedWorlds.containsKey(loc.getWorld())) {
-            Rectangle worldBorder = protectedWorlds.get(loc.getWorld());
-            return worldBorder.contains(loc.getBlockX(),loc.getBlockZ());
-        } else {
+    public static boolean isAllowed(Player player, Location loc) {
+        World world = player.getWorld();
+        if(player.hasPermission("worldborder.ignore") || !borderConfig.contains(world.getName())) {
             return true;
         }
-    }
-    
-    private Rectangle rectangleFromConfig(ConfigurationSection config) {
-        int minX = config.getInt("minX");
-        int maxX = config.getInt("maxX");
-        int minZ = config.getInt("minZ");
-        int maxZ = config.getInt("maxZ");
-        return new Rectangle(minX, minZ, maxX-minX, maxZ-minZ);
+        ConfigurationSection worldConfig = borderConfig.getConfigurationSection(world.getName());
+        if((worldConfig.contains("xMin") && loc.getBlockX()<worldConfig.getInt("xMin"))
+                || (worldConfig.contains("xMax") && loc.getBlockX()>worldConfig.getInt("xMax"))) {
+//Logger.getGlobal().info("xTest: "+loc.getBlockX()+" "+ worldConfig.get("xMin")+" "+worldConfig.get("xMax"));
+            return false;
+        }
+        if((worldConfig.contains("yMin") && loc.getBlockY()<worldConfig.getInt("yMin"))
+                || (worldConfig.contains("yMax") && loc.getBlockY()>worldConfig.getInt("yMax"))) {
+//Logger.getGlobal().info("yTest: "+loc.getBlockY()+" "+ worldConfig.get("yMin")+" "+worldConfig.get("yMax"));
+            return false;
+        }
+        if((worldConfig.contains("zMin") && loc.getBlockZ()<worldConfig.getInt("zMin"))
+                || (worldConfig.contains("zMax") && loc.getBlockZ()>worldConfig.getInt("zMax"))) {
+//Logger.getGlobal().info("zTest: "+loc.getBlockZ()+" "+ worldConfig.get("zMin")+" "+worldConfig.get("zMax"));
+            return false;
+        }
+        return true;
     }
     
     @Override
     public ChunkGenerator getDefaultWorldGenerator(String worldName, String GenId) {
-        Logger.getGlobal().info("Get Void Generator");
         return new VoidGenerator();
     }
 

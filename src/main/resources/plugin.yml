@@ -1,6 +1,6 @@
 name: NoChunk
 main: com.mcmiddleearth.nochunks.NoChunks
-version: 1.0.0
+version: 2.0
 load: STARTUP
 authors: [DonoA,Eriol_Eandur]
 
